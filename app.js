@@ -10,6 +10,9 @@ const muteBtn = document.getElementById('mute-btn');
 const unmuteBtn = document.getElementById('unmute-btn');
 const remoteAudio = document.getElementById('remoteAudio');
 const userList = document.getElementById('user-list');
+const hostIpInfo = document.getElementById('host-ip-info');
+const hostIpDisplay = document.getElementById('host-ip-display');
+const lobbyError = document.getElementById('lobby-error');
 
 let localStream = null;
 let peerConnection = null;
@@ -105,6 +108,16 @@ createLobbyBtn.onclick = async () => {
   lobbyIdSpan.textContent = 'Host';
   lobbySection.style.display = 'none';
   intercomSection.style.display = 'block';
+  hostIpInfo.style.display = 'block';
+  lobbyError.textContent = '';
+  // Fetch and display host IP
+  try {
+    const res = await fetch('http://localhost:3001/ip');
+    const data = await res.json();
+    hostIpDisplay.textContent = data.ip;
+  } catch (e) {
+    hostIpDisplay.textContent = 'Unknown (IP server not running)';
+  }
   await startLocalStream();
   await createPeerConnection();
   connectSignalingServer('0.0.0.0'); // Listen on all interfaces
@@ -118,14 +131,41 @@ joinLobbyBtn.onclick = async () => {
   lobbyIdSpan.textContent = 'Client';
   lobbySection.style.display = 'none';
   intercomSection.style.display = 'block';
+  hostIpInfo.style.display = 'none';
+  lobbyError.textContent = '';
   await startLocalStream();
   await createPeerConnection();
-  connectSignalingServer(hostIp);
+  try {
+    await connectSignalingServerWithError(hostIp);
+  } catch (e) {
+    lobbyError.textContent = 'Failed to connect to lobby. Please check the IP and try again.';
+    intercomSection.style.display = 'none';
+    lobbySection.style.display = 'flex';
+    return;
+  }
   // Client creates offer
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
   sendSignalingMessage({ type: 'offer', offer });
 };
+
+async function connectSignalingServerWithError(host) {
+  return new Promise((resolve, reject) => {
+    signalingSocket = new WebSocket(`ws://${host}:3000`);
+    signalingSocket.onopen = () => {
+      username = promptUsername();
+      sendSignalingMessage({ type: 'join', username });
+      resolve();
+    };
+    signalingSocket.onmessage = handleSignalingMessage;
+    signalingSocket.onerror = (e) => {
+      reject(e);
+    };
+    signalingSocket.onclose = () => {
+      // Only show error if not intentionally closed
+    };
+  });
+}
 
 leaveLobbyBtn.onclick = () => {
   if (peerConnection) peerConnection.close();
