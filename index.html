@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Intercom</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Local Intercom</h1>
+    <div id="lobby-section">
+      <button id="create-lobby">Create Lobby (Host)</button>
+      <div id="join-lobby-form">
+        <input type="text" id="host-ip" placeholder="Host IP (e.g. 192.168.1.1)">
+        <button id="join-lobby">Join Lobby (Client)</button>
+      </div>
+    </div>
+    <div id="intercom-section" style="display:none;">
+      <h2>Lobby: <span id="lobby-id"></span></h2>
+      <button id="leave-lobby">Leave Lobby</button>
+      <div class="audio-controls">
+        <button id="mute-btn">Mute</button>
+        <button id="unmute-btn" style="display:none;">Unmute</button>
+      </div>
+      <audio id="remoteAudio" autoplay></audio>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html> 
