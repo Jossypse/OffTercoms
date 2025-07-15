@@ -9,17 +9,29 @@ const leaveLobbyBtn = document.getElementById('leave-lobby');
 const muteBtn = document.getElementById('mute-btn');
 const unmuteBtn = document.getElementById('unmute-btn');
 const remoteAudio = document.getElementById('remoteAudio');
+const userList = document.getElementById('user-list');
 
 let localStream = null;
 let peerConnection = null;
 let signalingSocket = null;
 let isHost = false;
+let username = '';
+
+function promptUsername() {
+  let name = prompt('Enter your name:', 'User');
+  if (!name) name = 'User';
+  return name;
+}
 
 // --- Signaling ---
 function connectSignalingServer(host) {
   // Connect to local signaling server (WebSocket)
   signalingSocket = new WebSocket(`ws://${host}:3000`);
-  signalingSocket.onopen = () => console.log('Connected to signaling server');
+  signalingSocket.onopen = () => {
+    console.log('Connected to signaling server');
+    username = promptUsername();
+    sendSignalingMessage({ type: 'join', username });
+  };
   signalingSocket.onmessage = handleSignalingMessage;
   signalingSocket.onerror = (e) => alert('Signaling server error: ' + e.message);
   signalingSocket.onclose = () => alert('Signaling server closed');
@@ -34,6 +46,9 @@ function handleSignalingMessage(event) {
     handleAnswer(data.answer);
   } else if (data.type === 'ice') {
     handleRemoteICE(data.candidate);
+  } else if (data.type === 'userlist') {
+    updateUserList(data.users);
+    return;
   }
 }
 
@@ -73,6 +88,15 @@ async function handleAnswer(answer) {
 
 function handleRemoteICE(candidate) {
   peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+}
+
+function updateUserList(users) {
+  userList.innerHTML = '';
+  users.forEach(u => {
+    const li = document.createElement('li');
+    li.textContent = u;
+    userList.appendChild(li);
+  });
 }
 
 // --- UI Logic ---
