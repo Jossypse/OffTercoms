@@ -18,6 +18,9 @@
     </div>
     <div id="intercom-section" style="display:none;">
       <h2>Lobby: <span id="lobby-id"></span></h2>
+      <div id="host-ip-info" style="display:none;">
+        <strong>Your IP (share with user 2):</strong> <span id="host-ip-display"></span>
+      </div>
       <button id="leave-lobby">Leave Lobby</button>
       <div class="audio-controls">
         <button id="mute-btn">Mute</button>
@@ -28,6 +31,7 @@
         <ul id="user-list"></ul>
       </div>
       <audio id="remoteAudio" autoplay></audio>
+      <div id="lobby-error" style="color:red; margin-top:10px;"></div>
     </div>
   </div>
   <script src="app.js"></script>
